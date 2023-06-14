@@ -1,21 +1,68 @@
-name: Mirror and run GitLab CI
+name: Mirror and push to GitLab
 
-on: [push]
+on:
+  push:
+    branches:
+      - development
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Mirror + trigger CI
-      uses: SvanBoxel/gitlab-mirror-and-ci-action@master
-      with:
-        args: "https://gitlab.com/hardi.kakalaw/toys_devops development"
-      env:
-        FOLLOW_TAGS: "false"
-        FORCE_PUSH: "false"
-        GITLAB_HOSTNAME: "gitlab.com"
-        GITLAB_USERNAME: "hardi.kakalaw"
-        GITLAB_PASSWORD: "glpat-H-U7CzCevMM9BxoEoRxN"
-        GITLAB_PROJECT_ID: "46116784"
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Push to GitLab
+        uses: actions/github-script@v4
+        env:
+          GITLAB_TOKEN: "glpat-H-U7CzCevMM9BxoEoRxN"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const git = require('isomorphic-git');
+            const http = require('isomorphic-git/http/node');
+            const fs = require('fs');
+            
+            const gitlabToken = process.env.GITLAB_TOKEN;
+            const gitlabRepo = 'https://gitlab.com/hardi.kakalaw/toys_devops';
+            const gitlabBranch = 'development';
+
+            async function main() {
+              await git.clone({
+                fs,
+                http,
+                dir: '.',
+                url: gitlabRepo,
+                singleBranch: true,
+                depth: 1,
+                ref: gitlabBranch,
+                username: 'hardi.kakalaw',
+                password: gitlabToken,
+              });
+
+              await git.add({
+                fs,
+                dir: '.',
+                filepath: 'path/to/modified/files',
+              });
+
+              await git.commit({
+                fs,
+                dir: '.',
+                author: {
+                  name: 'Hardi',
+                  email: 'hardi.kakalaw@chasacademy.se',
+                },
+                message: 'Commit message',
+              });
+
+              await git.push({
+                fs,
+                http,
+                dir: '.',
+                remote: 'origin',
+                ref: gitlabBranch,
+                username: 'hardi.kakalaw',
+                password: gitlabToken,
+              });
+            }
+
+            main();
