@@ -18,4 +18,4 @@ jobs:
         GITLAB_USERNAME: "hardi.kakalaw"
         GITLAB_PASSWORD: "glpat-H-U7CzCevMM9BxoEoRxN"
         GITLAB_PROJECT_ID: "46116784"
-        GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
